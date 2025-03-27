@@ -1,0 +1,36 @@
+name: Deploy Node.js & Express.js App to Azure
+
+on:
+  push:
+    branches:
+      - dev  # Change this to 'development' if deploying from that branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest  # Runs the workflow on Ubuntu
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3  # Pulls the latest code from GitHub
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18  # Use the Node.js version required by your app
+
+    - name: Install Dependencies
+      run: npm install  # Installs Node.js dependencies
+
+    - name: Build Project
+      run: npm run build  # Skip this if your Express.js app doesn't require building
+
+    - name: Zip Application for Deployment
+      run: zip -r release.zip . -x "*.git*"
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: "YourAzureWebAppName"  # Replace with your actual Azure Web App name
+        slot-name: "production"
+        package: release.zip
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  # Store in GitHub Secrets
